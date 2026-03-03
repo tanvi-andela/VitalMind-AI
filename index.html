@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAssist AI</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  margin:0;
+  background:#f0fdfa;
+}
+.page{display:none;padding:30px;}
+.active{display:block;}
+button{
+  padding:10px 15px;
+  background:#0d9488;
+  color:white;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+input,select,textarea{
+  padding:8px;
+  width:100%;
+  margin-bottom:10px;
+}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:15px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+.nav{
+  background:#134e4a;
+  color:white;
+  padding:10px;
+}
+.nav button{
+  background:transparent;
+  border:1px solid white;
+  margin-right:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="nav" id="navbar" style="display:none;">
+  <button onclick="go('dashboard')">Dashboard</button>
+  <button onclick="go('symptom')">Symptom Checker</button>
+  <button onclick="go('triage')">Triage</button>
+  <button onclick="go('meds')">Medications</button>
+  <button onclick="go('history')">History</button>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- LOGIN PAGE -->
+<div id="login" class="page active">
+  <div class="card">
+    <h2>MedAssist AI</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p>Demo: demo@medassist.ai / demo123</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="page">
+  <h2>Welcome to MedAssist AI</h2>
+  <div class="card">
+    AI-powered healthcare assistant.
+  </div>
+</div>
+
+<!-- SYMPTOM CHECKER -->
+<div id="symptom" class="page">
+  <h2>AI Symptom Checker</h2>
+  <div class="card">
+    <textarea id="symptoms" placeholder="Describe symptoms..."></textarea>
+    <select id="severity">
+      <option value="">Select Severity</option>
+      <option>Mild</option>
+      <option>Moderate</option>
+      <option>Severe</option>
+    </select>
+    <button onclick="analyze()">Analyze</button>
+  </div>
+  <div id="result"></div>
+</div>
+
+<!-- TRIAGE -->
+<div id="triage" class="page">
+  <h2>Medical Triage</h2>
+  <div class="card">
+    <button onclick="triage('home')">Home Care</button>
+    <button onclick="triage('doctor')">Doctor Visit</button>
+    <button onclick="triage('emergency')">Emergency</button>
+  </div>
+  <div id="triageResult"></div>
+</div>
+
+<!-- MEDICATIONS -->
+<div id="meds" class="page">
+  <h2>Medication Reminders</h2>
+  <div class="card">
+    <input id="medName" placeholder="Medicine Name">
+    <input id="medTime" placeholder="Time (e.g. 8 AM)">
+    <button onclick="addMed()">Add</button>
+  </div>
+  <div id="medList"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="history" class="page">
+  <h2>Symptom History</h2>
+  <div id="historyList"></div>
+</div>
+
+<script>
+
+function go(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+}
+
+function login(){
+  const email=document.getElementById('email').value;
+  const pass=document.getElementById('password').value;
+  if(email==="demo@medassist.ai" && pass==="demo123"){
+    document.getElementById('navbar').style.display="block";
+    go('dashboard');
+  } else{
+    alert("Invalid credentials");
+  }
+}
+
+function logout(){
+  location.reload();
+}
+
+function analyze(){
+  const symptoms=document.getElementById('symptoms').value;
+  const severity=document.getElementById('severity').value;
+  let advice="";
+  if(severity==="Mild"){
+    advice="Rest, hydrate and monitor symptoms.";
+  } else if(severity==="Moderate"){
+    advice="Consider visiting a doctor within 24-48 hours.";
+  } else if(severity==="Severe"){
+    advice="Seek emergency medical attention immediately.";
+  } else{
+    advice="Please select severity.";
+  }
+  document.getElementById('result').innerHTML=
+    `<div class='card'><strong>AI Guidance:</strong><br>${advice}</div>`;
+  saveHistory(symptoms,severity);
+}
+
+function triage(type){
+  let msg="";
+  if(type==="home") msg="Manage at home.";
+  if(type==="doctor") msg="Schedule doctor visit.";
+  if(type==="emergency") msg="Go to ER immediately.";
+  document.getElementById('triageResult').innerHTML=
+    `<div class='card'>${msg}</div>`;
+}
+
+function addMed(){
+  const name=document.getElementById('medName').value;
+  const time=document.getElementById('medTime').value;
+  if(name && time){
+    const list=document.getElementById('medList');
+    list.innerHTML+=`<div class='card'>${name} - ${time}</div>`;
+  }
+}
+
+function saveHistory(symptoms,severity){
+  let history=JSON.parse(localStorage.getItem('history')) || [];
+  history.push({symptoms,severity,date:new Date().toLocaleString()});
+  localStorage.setItem('history',JSON.stringify(history));
+  loadHistory();
+}
+
+function loadHistory(){
+  const history=JSON.parse(localStorage.getItem('history')) || [];
+  const list=document.getElementById('historyList');
+  list.innerHTML="";
+  history.forEach(h=>{
+    list.innerHTML+=
+    `<div class='card'>
+      <strong>${h.date}</strong><br>
+      Symptoms: ${h.symptoms}<br>
+      Severity: ${h.severity}
+    </div>`;
+  });
+}
+
+loadHistory();
+
+</script>
+
+</body>
+</html>
